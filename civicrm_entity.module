@@ -122,9 +122,11 @@ function civicrm_entity_schema_alter(&$schema) {
   );
   */
 }
-/*
- * This approach may not be required as using the schema_alter hook (as opposed to
- * schema_hook) seems to get around a bunch of the reasons I used a separate schema
+
+/**
+ * This approach may not be required as using the schema_alter hook
+ * (as opposed to schema_hook) seems to get around a bunch of the
+ * reasons I used a separate schema.
  */
 function civicrm_entity_get_schema($table) {
   if(!civicrm_initialize(TRUE)){
