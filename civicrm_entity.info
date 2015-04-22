@@ -1,5 +1,5 @@
-name = CiviCRM Entities
-description = "Declare CiviCRM entities as Drupal entities"
+name = CiviCRM Entity
+description = "Expose CiviCRM entities as Drupal entities"
 dependencies[] = civicrm
 dependencies[] = entity
 package = CiviCRM
