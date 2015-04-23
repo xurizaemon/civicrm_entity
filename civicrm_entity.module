@@ -1009,7 +1009,7 @@ function civicrm_entity_action_load_user($entity) {
  * @return object
  *   $user Drupal user object or FALSE.
  */
-function civicrm_entity_action_create_user($contact, $is_active, $notify = FALSE, $signin = FALSE) {
+function civicrm_entity_action_create_user($contact, $is_active, $notify = FALSE, $signin = FALSE, $username_format = 'first last') {
   if (!is_array($contact)) {
     // Perhaps we should be accepting object rather than array here?
     $contact = (array) $contact;
@@ -1041,6 +1041,25 @@ function civicrm_entity_action_create_user($contact, $is_active, $notify = FALSE
     'init' => $contact['email'],
   );
 
+  if (empty($contact['display_name'])) {
+    $contact['display_name'] = $contact['email'];
+  }
+
+  switch ($username_format) {
+    case 'firstlast':
+      $params['name'] = str_replace(' ', '', $params['name']);
+      break;
+
+    case 'first.last':
+      $params['name'] = str_replace(' ', '.', $params['name']);
+      break;
+
+    case 'email':
+      $params['name'] = $params['email'];
+      break;
+
+  }
+
   // Check if the requested username is available.
   $errors = array();
   $config = CRM_Core_Config::singleton();
@@ -1052,7 +1071,7 @@ function civicrm_entity_action_create_user($contact, $is_active, $notify = FALSE
     return FALSE;
   }
 
-  $params['cms_name'] = $params['name'] = $user['name'] = !empty($contact['display_name']) ? $contact['display_name'] : $params['mail'];
+  $params['cms_name'] = $user['name'] = $params['name'];
   $params['cms_pass'] = $user['pass'] = substr(str_shuffle("abcefghijklmnopqrstuvwxyz"), 0, 8);
   $params['status'] = $is_active;
   if ($notify) {
@@ -2643,3 +2662,14 @@ function _civicrm_entity_formatted_output_of_arrays(&$field,$wrapper) {
   }
 }
 
+/**
+ * Options list for create linked user username format.
+ */
+function _civicrm_entity_options_username_format() {
+  return array(
+    'first last' => 'Firstname Lastname',
+    'firstlast' => 'FirstnameLastname',
+    'first.last' => 'Firstname.Lastname',
+    'email' => 'contact@example.org',
+  );
+}
