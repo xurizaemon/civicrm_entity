@@ -80,20 +80,21 @@ function civicrm_entity_rules_event_info() {
   // array('Event' => 'civicrm_event');
   if (is_array($valid_objects)) {
     foreach ($valid_objects as $entity => $civicrm_entity) {
-      $entity_name = 'CiviCRM ' . ucwords(str_replace('_', ' ', $civicrm_entity));
+      $entity_name = t('CiviCRM @name', array('@name' => ucwords(str_replace('_', ' ', $civicrm_entity))));
+      $entity_group = t('CiviCRM Entity: @name', array('@name' => ucwords(str_replace('_', ' ', $civicrm_entity))));
       // @TODO consider building the entity name into the argument
       // rather than calling the same argument for each.
       $create_msg = t('Created !entity', array('!entity' => $entity_name));
       $events[$entity . '_create'] = array(
         'label' => t("!entity has been created", array('!entity' => $entity_name)),
-        'group' => $entity_name,
+        'group' => $entity_group,
         'module' => 'civicrm',
         'access_callback' => '_civicrm_entity_rules_access',
         'variables' => civicrm_entity_rules_events_variables($create_msg, $entity, $civicrm_entity),
       );
       $update_msg = t('Updated !entity', array('!entity' => $entity_name));
       $events[$entity . '_edit'] = array(
-        'group' => $entity_name,
+        'group' => $entity_group,
         'module' => 'civicrm',
         'access_callback' => '_civicrm_entity_rules_access',
         'label' => t("!entity has been updated", array('!entity' => $entity_name)),
@@ -101,7 +102,7 @@ function civicrm_entity_rules_event_info() {
       );
       $view_msg = t('Viewed !entity', array('!entity' => $entity_name));
       $events[$entity . '_view'] = array(
-        'group' => $entity_name,
+        'group' => $entity_group,
         'module' => 'civicrm',
         'access_callback' => '_civicrm_entity_rules_access',
         'label' => t("!entity has been viewed", array('!entity' => $entity_name)),
@@ -109,7 +110,7 @@ function civicrm_entity_rules_event_info() {
       );
       $delete_msg = t('Deleted !entity', array('!entity' => $entity_name));
       $events[$entity . '_delete'] = array(
-        'group' => $entity_name,
+        'group' => $entity_group,
         'module' => 'civicrm',
         'access_callback' => '_civicrm_entity_rules_access',
         'label' => t("!entity has been deleted", array('!entity' => $entity_name)),
@@ -118,6 +119,28 @@ function civicrm_entity_rules_event_info() {
     }
   }
   return $events;
+}
+
+/**
+ * Implements hook_rules_event_info_alter(&$events).
+ *
+ * Identify events provided by Entity Rules based on CiviCRM Entity, and
+ * adjust their group to clarify which module is the event provider.
+ */
+function civicrm_entity_rules_event_info_alter(&$events) {
+  foreach ($events as &$event) {
+    if (isset($event['group']) && !preg_match('/: /', $event['group'])) {
+      switch ($event['module']) {
+        case 'civicrm':
+          $label = str_replace('CiviCRM ', '', $event['group']);
+          $event['group'] = t('CiviCRM: @name', array('@name' => $label));
+          break;
+        case 'civicrm_entity':
+          $event['group'] = t('CiviCRM Entity: @name', array('@name' => $event['group']));
+          break;
+      }
+    }
+  }
 }
 
 /**
